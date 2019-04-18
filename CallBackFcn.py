@@ -3,6 +3,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import tkinter.messagebox as mb
 import tkinter.filedialog as dir
+from Shape import ShapeLabel,fetchLabel
 from lib import XML_LIB
 import os,filetype
 from shutil import copyfile
@@ -17,6 +18,7 @@ class CallBackFcn():
         self.image_paths = []  # 工作目录下的所有文件路径
         self.image_names = []
         self.image_label = []
+        self.shapeLabel=ShapeLabel()
         self.work_dir = ''
         self.factor = 1.0  # 图像缩放因子
         self.x = 0
@@ -26,7 +28,6 @@ class CallBackFcn():
         self.number = 0  # 用于矩形画图时直线提醒
         self.lable_Type = 0  # 标注类型
         self.scatter_point = []
-        self.lable_save_file = XML_LIB.XMLWrite('.', 'test')
         self.canvas=None
         self.hbar=None
         self.vbar=None
@@ -89,9 +90,16 @@ class CallBackFcn():
                 print('已经点击了右键' + 'root')
             else:
                 print('已经点击了右键')
-
+    # lable 树插入标签
     def insert_label_tree(self,tree,lable_list):
         tree.insert(self.tr_root, 0, None, text=lable_list, values=(lable_list))  # 添加二级节点
+    # 清空label 树
+    def clean_label_tree(self,tree):
+        x=tree.get_children()
+        for item in x:
+            tree.delete(item)
+        self.tr_root = tree.insert("", 0, None, open=True, text='标签类别', values=('root'))
+        self.image_label=[]
 
     ##########################
     ##    file  callbacks   ##
@@ -117,6 +125,7 @@ class CallBackFcn():
             self.viewmethos.label_rect.config(state=tk.ACTIVE)
             self.viewmethos.label_scat.config(state=tk.ACTIVE)
             self.viewmethos.save_lable.config(state=tk.ACTIVE)
+            self.viewmethos.show_lable.config(state=tk.ACTIVE)
             self.draw_available = True
         else:
             mb.showinfo("提醒", "目录选择失败！")
@@ -155,7 +164,8 @@ class CallBackFcn():
         self.image_index = self.image_index + 1
         self.x = 0
         self.y = 0
-
+        self.shapeLabel.clear()
+        self.clean_label_tree(self.viewmethos.lable_tree)
         # 前一张图片
     # 上一张图片
     def get_pre_image(self):
@@ -171,7 +181,8 @@ class CallBackFcn():
         self.image_index = self.image_index - 1
         self.x = 0
         self.y = 0
-
+        self.shapeLabel.clear()
+        self.clean_label_tree(self.viewmethos.lable_tree)
         # 在canvas上显示图片
     # 显示图片
     def showImage(self, image_path):
@@ -180,8 +191,11 @@ class CallBackFcn():
         self.current_path = image_path
         img = Image.open(image_path)
         w, h = img.size
+        w = int(w * self.factor)
+        h = int(h * self.factor)
         self.current_width = w
         self.current_height = h
+        img = img.resize((w, h), Image.ANTIALIAS)
         #img = self.resize(img, w, h, 800, 600)
         #w, h = img.size
         img = ImageTk.PhotoImage(img)
@@ -224,10 +238,39 @@ class CallBackFcn():
         self.canvas.create_image(0, 0, image=img, anchor='nw', tags='show_image')
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
-
+    def show_label(self):
+        name = self.image_names[self.image_index].split(".")[0]
+        labels=fetchLabel(name)
+        self.draw_previous(labels)
+        print(labels)
     ##########################
     ##   canvas callbacks   ##
     ##########################
+
+
+    def draw_previous(self,labels):
+        for label in labels:
+            if label[0]==1:
+                self.draw_rectangle_previous(label[1:])
+                if label[-1] not in self.image_label:
+                    self.insert_label_tree(self.viewmethos.lable_tree, label[-1])  # 添加标签数
+                    self.image_label.append(label[-1])
+            else:
+                self.draw_polygon_previous(label[1:])
+                if label[-1] not in self.image_label:
+                    self.insert_label_tree(self.viewmethos.lable_tree, label[-1])  # 添加标签数
+                    self.image_label.append(label[-1])
+
+    def draw_rectangle_previous(self,coords):
+        self.canvas.create_line((int(coords[0]-coords[2]/2), int(coords[1]-coords[3]/2)), (int(coords[0]-coords[2]/2), int(coords[1]+coords[3]/2)), width=3, fill='red')
+        self.canvas.create_line((int(coords[0] - coords[2] / 2), int(coords[1] - coords[3] / 2)),(int(coords[0] + coords[2] / 2), int(coords[1] - coords[3] / 2)), width=3, fill='red')
+        self.canvas.create_line((int(coords[0] + coords[2] / 2), int(coords[1] + coords[3] / 2)),(int(coords[0] + coords[2] / 2), int(coords[1] - coords[3] / 2)), width=3, fill='red')
+        self.canvas.create_line((int(coords[0] + coords[2] / 2), int(coords[1] + coords[3] / 2)),(int(coords[0] - coords[2] / 2), int(coords[1] + coords[3] / 2)), width=3, fill='red')
+
+    def draw_polygon_previous(self,coords):
+        for i in range(len(coords)-2):
+            self.canvas.create_line((coords[i][0], coords[i][1]),(coords[i+1][0], coords[i+1][1]), width=3,fill='green')
+        self.canvas.create_line((coords[0][0], coords[0][1]), (coords[-2][0], coords[-2][1]), width=3,fill='green')
 
     def mouse_on_canvas(self, event):
         event_x = int(event.x + self.canvas.xview()[0] * self.current_width)
@@ -273,21 +316,19 @@ class CallBackFcn():
                 lDialog = LabelDialog()
                 self.viewmethos.wait_window(lDialog)
                 r = lDialog.userinfo
-                #r = simpledialog.askstring('标签', '请输入标签', initialvalue='浙AXXXX')
+
                 if self.image_index >= 0 and r != None:
                     if r[0] not in self.image_label:
                         self.insert_label_tree(self.viewmethos.lable_tree, r[0])  # 添加标签数
                         self.image_label.append(r[0])
-
-                    self.lable_save_file.create_object(self.image_paths[self.image_index], 'image', 'path')
-                    self.lable_save_file.set_lable_info(r[0], lable_name='palte')
-                    self.lable_save_file.set_position_rect('poiston', w=self.factor * (event_x - self.x),
-                                                           h=self.factor * (event_y - self.y), x=self.factor * self.x,
-                                                           y=self.factor * self.y)
+                    coord=[self.lable_Type,(self.x+event_x)/2/self.factor ,(self.y+event_y)/2/self.factor,(event_x - self.x)/self.factor,(event_y - self.y)/self.factor ,r[0]]
+                    self.shapeLabel.addShape(self.image_names[self.image_index],int(self.current_height/self.factor),int(self.current_width/self.factor),coord)
+                    self.shapeLabel.debug()
             else:
-                self.x = event_x;
+                self.x = event_x
                 self.y = event_y
                 self.clicked = True
+
         elif self.lable_Type == 2:
             if not self.clicked:
                 self.scatter_point.clear()
@@ -298,21 +339,20 @@ class CallBackFcn():
                 self.canvas.create_line((last_p[0], last_p[1]), (event_x, event_y), fill='green', width=3, tags='line')
 
                 if len(self.scatter_point) > 0 and self.scatter_point[0][0] < event_x + 5 and self.scatter_point[0][
-                    0] > event_x - 5 and self.scatter_point[0][1] < event_y + 5 and self.scatter_point[0][
-                    1] > event_y - 5:
+                    0] > event_x - 5 and self.scatter_point[0][1] < event_y + 5 and self.scatter_point[0][1] > event_y - 5:
                     self.clicked = False
                     self.viewmethos.label_scat.config(state=tk.ACTIVE)
                     self.viewmethos.label_rect.config(state=tk.ACTIVE)
                     lDialog = LabelDialog()
-                    self.wait_window(lDialog)
+                    self.viewmethos.wait_window(lDialog)
                     r=lDialog.userinfo
-                    #r = simpledialog.askstring('标签', '请输入标签', initialvalue='浙AXXXX')
+
                     if self.image_index >= 0 and r != None:
-                        info = {'lt': self.scatter_point[0], 'rt': self.scatter_point[1], 'lb': self.scatter_point[2],
-                                'rb': self.scatter_point[3]}
-                        self.lable_save_file.create_object(self.image_paths[self.image_index], 'image', 'path')
-                        self.lable_save_file.set_lable_info(r[0], lable_name='palte')
-                        self.lable_save_file.set_position_scat('poiston', info)
+                        coord = [[int(coordtuple[0]/self.factor),int(coordtuple[1]/self.factor)] for coordtuple in self.scatter_point]
+                        coord.append(r[0])
+                        coord.insert(0,self.lable_Type)
+                        self.shapeLabel.addShape(self.image_names[self.image_index],int(self.current_height/self.factor),int(self.current_width/self.factor),coord)
+                        self.shapeLabel.debug()
                         self.scatter_point.clear()
                 else:
                     self.scatter_point.append([event_x, event_y])
@@ -322,8 +362,10 @@ class CallBackFcn():
     def save_lable_file(self):
         if not os.path.exists("./annotation_output/"):
             os.mkdir("./annotation_output/")
-        copyfile(self.current_path,"./annotation_output/1.jpg")
-        self.lable_save_file.save()
+        print(self.image_names[self.image_index])
+        name=(self.image_names[self.image_index]).split(".")[0]
+        copyfile(self.current_path,"./annotation_output/"+name+".jpg")
+        self.shapeLabel.save("./annotation_output/",name+".json")
         self.viewmethos.label_rect.config(state=tk.ACTIVE)
         self.viewmethos.label_scat.config(state=tk.ACTIVE)
 

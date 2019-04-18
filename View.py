@@ -71,7 +71,7 @@ class MainGUI(tk.Frame):
         cbs.canvas.bind('<Button-1>',cbs.left_mouse_click)
         #self.canvas.bind('<Button-1>',self.left_mouse_click_press)
         #self.canvas.bind('<ButtonRelease-1>', self.left_mouse_click_release)
-        cbs.showImage('./icon/icon.png')
+        cbs.showImage('./icon/welcome.png')
 
         #左上布局
         # 左侧Frame帧第二行添加控制按钮
@@ -185,7 +185,7 @@ class MainGUI(tk.Frame):
 
         self.showlabelImg = tk.PhotoImage(file="./icon/eye.png")
         self.showLabel = tk.Label(self.frm_control, text='查看标注', font=('Times', 9))
-        self.show_lable = tk.Button(self.frm_control, state=tk.DISABLED, command=cbs.save_lable_file,image=self.showlabelImg, relief=tk.FLAT)
+        self.show_lable = tk.Button(self.frm_control, state=tk.DISABLED, command=cbs.show_label,image=self.showlabelImg, relief=tk.FLAT)
         self.show_lable.grid(row=1, column=9, padx=7, sticky=tk.NSEW)
         self.showLabel.grid(row=2, column=9, padx=7, sticky=tk.NSEW)
     # 创建图像树

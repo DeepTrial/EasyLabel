@@ -1,0 +1,25 @@
+{
+  "info":
+  {
+    "year": 2019,
+    "version": 0.1,
+    "description": "Xray Detection",
+    "contributor": "LPAIS",
+    "data_created": 2019
+  },
+  "license":
+  {
+    "level": "private"
+  },
+  "image":
+  {
+    "file_name": "",
+    "id": 0,
+    "height": 100,
+    "width": 100,
+    "is_reference": 0
+  },
+  "annotations": [
+
+  ]
+}

@@ -2,7 +2,7 @@
 # coding:utf-8
 
 import tkinter as tk
-from app import  MainGUI
+from View import  MainGUI
 '''
 这是一个基于tkinter库的图像标注工具，目前支持标注矩形区域和散点区域，标注文件支持XML和JSON格式
 '''
