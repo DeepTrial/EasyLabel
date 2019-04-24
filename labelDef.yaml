@@ -1,0 +1,3 @@
+cutter: {cutter: 100, knife: 1, scissors: 2}
+explosive: {explosive: 200, firecracker: 1, firework: 2}
+lighter: 300

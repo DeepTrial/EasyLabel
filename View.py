@@ -161,7 +161,7 @@ class MainGUI(tk.Frame):
 
         self.revokeImg = tk.PhotoImage(file="./icon/undo.png")
         self.revokeLabel = tk.Label(self.frm_control, text='撤销标注',font=('Times',9))
-        self.revoke = tk.Button(self.frm_control,state=tk.DISABLED,command=cbs.remove_canvas_lable_all,image=self.revokeImg,relief=tk.FLAT)
+        self.revoke = tk.Button(self.frm_control,state=tk.DISABLED,command=cbs.revoke_label,image=self.revokeImg,relief=tk.FLAT)
         self.revoke.grid(row=1, column=5, padx=7,sticky=tk.NSEW)
         self.revokeLabel.grid(row=2, column=5, padx=7, sticky=tk.NSEW)
 

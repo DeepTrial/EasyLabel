@@ -13,7 +13,7 @@ IMAGE_FILE_TYPE = ['jpg','JPG','PNG','png','bmp','BMP']
 
 
 def set_mainUI(root):
-    root.title('Label-X')
+    root.title('EasyLabel')
     root.option_add("*Font", "宋体")
     center_window(root, 1640, 900)
     #root.maxsize(960, 640)
